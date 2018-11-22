@@ -12,9 +12,14 @@ defmodule Exsh do
         case args do
           [] ->
             File.cd(System.get_env("HOME"))
-
           _ ->
-            File.cd(args)
+            out = File.cd(args)
+            case out do
+              {:error, _} ->
+                IO.puts("cd: " <> List.first(args) <> ": No such file or directory")
+              _ ->
+                ""
+            end
         end
 
       _ ->
