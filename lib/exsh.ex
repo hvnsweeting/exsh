@@ -30,12 +30,37 @@ defmodule Exsh do
     stdout
   end
 
+  @doc """
+  THIS NOT WORK, see README
+  """
+  def run_via_port(cmd, stdin) do
+    port = Port.open({:spawn, cmd}, [:binary])
+    send(port, {self(), {:command, stdin}})
+    out = receive do
+      {_, {_, output}} -> output
+    end
+    Port.close(port)
+
+    out
+  end
+
+  @doc """
+  THIS NOT WORK, see README
+  """
+  def run_cmds([], output) do
+    IO.puts("This is finallal output " <> output)
+  end
+  def run_cmds([h|t], input) do
+    IO.puts("Running" <> h <> "with input" <> input)
+    out = run_via_port(h, input)
+    run_cmds(t, out)
+  end
+
+
   def start() do
     # TODO smarter split - like Python shutil.split
+    # It is not possible to pass stdin to System.cmd
     cmds = IO.gets(System.cwd() <> "$ ") |> String.split("|")
-    # TODO support pipe |
-    # Seems not able to pass stdin to System.cmd
-    # probably need Port https://stackoverflow.com/questions/41025736/how-to-write-to-stdin-of-external-process-in-elixir?noredirect=1&lq=1
     # Run the first cmd only, for now
     cmds |> List.first() |> run_cmd
     start()
